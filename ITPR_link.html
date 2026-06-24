@@ -1,0 +1,214 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITPR_订单快查_BY_Slash.Sun@ap.averydennison.com</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f5f7fa;
+        }
+        .container {
+            background-color: #fff;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 640px;
+        }
+        h2 {
+            margin-top: 0;
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 12px;
+        }
+        .controls {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            align-items: center;
+        }
+        label.prefix-label {
+            font-size: 14px;
+            color: #333;
+            margin-right: 4px;
+        }
+        select#prefixSelect {
+            padding: 6px 8px;
+            font-size: 13px;
+            border-radius: 6px;
+            border: 1px solid #e6e6e6;
+            background: #fafafa;
+            width: 64px; /* 调窄为 64px */
+            box-sizing: border-box;
+        }
+        input[type="text"] {
+            flex: 1; /* 占满剩余空间 */
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 8px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .note {
+            font-size: 12px;
+            color: #666;
+            margin-top: 8px;
+            text-align: center;
+        }
+
+        /* 响应式：窄屏时下拉和输入换行 */
+        @media (max-width: 480px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            select#prefixSelect {
+                width: 100%;
+            }
+            label.prefix-label {
+                margin-bottom: 6px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🚀 ITPR_订单快查_BY_Slash.Sun 前缀选择</h2>
+
+    <div style="font-size:13px; color:#444; margin-bottom:6px;">请选择前缀（将保存到 localStorage，下次自动恢复）</div>
+
+    <div class="controls">
+        <label class="prefix-label" for="prefixSelect">前缀：</label>
+        <select id="prefixSelect" aria-label="前缀选择">
+            <option value="16">16</option>
+            <option value="17">17</option>
+            <!-- 18-40 将由脚本动态生成 -->
+        </select>
+
+        <input type="text" id="inputString" placeholder="请输入订单号（不含前缀数字）" required aria-label="订单号输入">
+    </div>
+
+    <button onclick="redirectToUrl()">订单查看</button>
+    <div class="note">提示：前缀仅能选一个，页面会将你的选择储存在 localStorage。</div>
+</div>
+
+<script>
+    // localStorage helpers
+    function savePrefixToLocal(value) {
+        try {
+            localStorage.setItem('selectedPrefix', value);
+        } catch (e) {
+            console.warn('无法写入 localStorage:', e);
+        }
+    }
+
+    function getPrefixFromLocal() {
+        try {
+            return localStorage.getItem('selectedPrefix');
+        } catch (e) {
+            console.warn('无法读取 localStorage:', e);
+            return null;
+        }
+    }
+
+    // 动态填充 18-40 到下拉框
+    (function populateRange() {
+        var select = document.getElementById('prefixSelect');
+        for (var i = 18; i <= 40; i++) {
+            var opt = document.createElement('option');
+            opt.value = String(i);
+            opt.text = String(i);
+            select.appendChild(opt);
+        }
+    })();
+
+    // 初始化：恢复 localStorage 中的选择（如果没有则默认 16）
+    (function restorePrefixFromLocal() {
+        var saved = getPrefixFromLocal();
+        var select = document.getElementById('prefixSelect');
+        if (saved) {
+            var found = false;
+            for (var i = 0; i < select.options.length; i++) {
+                if (select.options[i].value === saved) {
+                    select.selectedIndex = i;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                select.value = "16";
+            }
+        } else {
+            select.value = "16";
+        }
+
+        // 当用户改变选择时保存到 localStorage
+        select.addEventListener('change', function() {
+            savePrefixToLocal(this.value);
+        });
+    })();
+
+    function redirectToUrl() {
+        var select = document.getElementById('prefixSelect');
+        var selectedPrefix = select.value;
+        if (!selectedPrefix) {
+            alert('请先选择前缀！');
+            return;
+        }
+
+        var userInput = document.getElementById('inputString').value.trim();
+        if (!userInput) {
+            alert('请输入订单号！');
+            return;
+        }
+
+        var inputVal = selectedPrefix + userInput;
+
+        // base URL：如需修改请在此行调整
+        var baseUrl = "https://script.google.com/a/macros/ap.averydennison.com/s/AKfycby3En1FDWbHqTT59slmWIKkFBNVoB9JlcEP2RdzogQJpxS3h-u3/exec?openpage=UHJpbnRSZXF1ZXN0&req=";
+
+        try {
+            // 将字符串转换为 Base64（支持中文）
+            var base64Encoded = btoa(encodeURIComponent(inputVal).replace(/%([0-9A-F]{2})/g, function(match, p1) {
+                return String.fromCharCode('0x' + p1);
+            }));
+
+            var finalUrl = baseUrl + base64Encoded;
+            window.open(finalUrl, '_blank');
+
+            // 保存所选前缀到 localStorage（冗余保证）
+            savePrefixToLocal(selectedPrefix);
+
+        } catch (error) {
+            console.error('编码失败:', error);
+            alert('编码过程中发生错误，请重试。');
+        }
+    }
+</script>
+
+</body>
+</html>
