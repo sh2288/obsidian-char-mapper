@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -46,7 +46,7 @@
             border-radius: 6px;
             border: 1px solid #e6e6e6;
             background: #fafafa;
-            width: 64px; /* 调窄为 64px */
+            width: 64px; /* 下拉框更窄 */
             box-sizing: border-box;
         }
         input[type="text"] {
@@ -97,7 +97,7 @@
 <body>
 
 <div class="container">
-    <h2>🚀 ITPR_订单快查_BY_Slash.Sun 前缀选择</h2>
+    <h2>🚀 ITPR_订单快查_BY_Slash.Sun</h2>
 
     <div style="font-size:13px; color:#444; margin-bottom:6px;">请选择前缀（将保存到 localStorage，下次自动恢复）</div>
 
@@ -112,7 +112,7 @@
         <input type="text" id="inputString" placeholder="请输入订单号（不含前缀数字）" required aria-label="订单号输入">
     </div>
 
-    <button onclick="redirectToUrl()">订单查看</button>
+    <button id="viewBtn" onclick="redirectToUrl()">订单查看</button>
     <div class="note">提示：前缀仅能选一个，页面会将你的选择储存在 localStorage。</div>
 </div>
 
@@ -171,6 +171,32 @@
             savePrefixToLocal(this.value);
         });
     })();
+
+    // 页面加载后让输入框获得焦点，并绑定回车触发
+    document.addEventListener('DOMContentLoaded', function() {
+        var input = document.getElementById('inputString');
+        var btn = document.getElementById('viewBtn');
+
+        // 自动获得焦点（尝试聚焦并将光标置于末尾）
+        try {
+            input.focus();
+            // 将光标移到末尾（如果已有值）
+            var val = input.value;
+            input.value = '';
+            input.value = val;
+        } catch (e) {
+            // ignore
+        }
+
+        // 回车触发按钮（keydown 捕获 Enter）
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.keyCode === 13) {
+                e.preventDefault();
+                // 模拟点击按钮
+                btn.click();
+            }
+        });
+    });
 
     function redirectToUrl() {
         var select = document.getElementById('prefixSelect');
